@@ -45,7 +45,6 @@ def data_processing(r):
     '''
 
     html_xpath = bs4.BeautifulSoup(r.text,'html.parser')
-    rs=[]
     https = html_xpath.find_all('td',attrs={'class':'td-02'})
     for i in range(len(https)):
         tag = https[i].text.split('\n')
@@ -66,7 +65,7 @@ def data_processing(r):
             }
             # print(data)
             mycol.insert_one(data)
-            print('微博热搜成功 {}'.format(arrow.now().format("YYYY-MM-DD HH:mm")))
+    print('微博热搜成功 {}'.format(arrow.now().format("YYYY-MM-DD HH:mm")))
             # rs.append(data)
         # print(data)
     # data = pd.DataFrame(data)
