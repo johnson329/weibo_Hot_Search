@@ -4,10 +4,17 @@
 # 需要requests、bs4、pandas库
 import os
 import time
+
+import arrow
 import requests
 import bs4
-import pandas as pd
+import pymongo
+myclient = pymongo.MongoClient("mongodb://192.168.142.171:27017/")
+mydb = myclient.admin
+mydb.authenticate("admin", "123.com")
+mydb = myclient["hot"]
 
+mycol = mydb["hot"]
 def crawl():
     '''
     爬虫模块
@@ -38,20 +45,33 @@ def data_processing(r):
     '''
 
     html_xpath = bs4.BeautifulSoup(r.text,'html.parser')
-    data = {}
-    title = []
-    hot = []
+    rs=[]
     https = html_xpath.find_all('td',attrs={'class':'td-02'})
     for i in range(len(https)):
         tag = https[i].text.split('\n')
+        link=https[i].a['href']
         if i == 0:
-            tag[2] = '0'
-        title.append(tag[1])
-        hot.append(tag[2])
-        data['标题'] = title
-        data['热度'] = hot
-    data = pd.DataFrame(data)
-    return data
+            # 置顶的没有热度
+            tag[2] = '-1'
+        hot = tag[2]
+        title=tag[1]
+        if not link.startswith('javascript:void'):
+            data={
+                'title':title,
+                'link':'https://s.weibo.com'+link,
+                'hot':hot,
+                'category':'weibo',
+                'time': arrow.now().format("YYYY-MM-DD HH:mm")
+
+            }
+            # print(data)
+            mycol.insert_one(data)
+            print('微博热搜成功 {}'.format(arrow.now().format("YYYY-MM-DD HH:mm")))
+            # rs.append(data)
+        # print(data)
+    # data = pd.DataFrame(data)
+    # print(len(rs))
+    # return data
     # 处理结束，标题和热度都存在字典data中
 
 def build_path():
@@ -85,12 +105,15 @@ def main():
     主函数
     '''
     r = crawl()
-    if r :
-        write_file(data_processing(r),build_path())
-        print('获取热搜完毕，三秒后关闭…')
-    else :
-        print('爬虫失败，检查网络')
-    time.sleep(3)
+    data_processing(r)
+    # print(data)
+    # print(r.text)
+    # if r :
+    #     write_file(data_processing(r),build_path())
+    #     print('获取热搜完毕，三秒后关闭…')
+    # else :
+    #     print('爬虫失败，检查网络')
+    # time.sleep(3)
     
 if __name__ == '__main__':
     main()
