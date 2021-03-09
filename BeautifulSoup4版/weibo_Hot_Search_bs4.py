@@ -9,7 +9,7 @@ import arrow
 import requests
 import bs4
 import pymongo
-myclient = pymongo.MongoClient("mongodb://192.168.142.171:27017/")
+myclient = pymongo.MongoClient("mongodb://localhost:27017/")
 mydb = myclient.admin
 mydb.authenticate("admin", "123.com")
 mydb = myclient["hot"]
